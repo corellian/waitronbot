@@ -1,0 +1,9 @@
+{
+    "token": "telegram_bot_token_here",
+    "db": {
+        "host": "localhost:5984",
+        "name": "waitron",
+        "username": "your_db_username_here",
+        "password": "your_db_password_here"
+    }
+}

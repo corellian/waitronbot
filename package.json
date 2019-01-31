@@ -1,0 +1,22 @@
+{
+  "name": "waitron-bot",
+  "version": "1.0.0",
+  "description": "Waitron Telegram Bot",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "telegraf": "3.25.5",
+    "couch-slouch": "1.1.0",
+    "node-schedule": "1.3.1"
+  },
+  "devDependencies": {
+    "eslint": "4.19.1",
+    "eslint-plugin-node": "6.0.1"
+  }
+}

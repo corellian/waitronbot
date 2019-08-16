@@ -53,7 +53,7 @@ const sendReply = (ctx, reply, value, type) => {
 // /list command - will send all the triggers defined in replies.js.
 bot.command('list', ctx => {
   getReplies().then((r) => {
-    const list = r.content;
+    const list = r.docs[0].content;
     ctx.reply(
       'Coses que entenc:\n\n' +
       list.map(x => '`' + x.cmd + '`').join('\n\n'), markup

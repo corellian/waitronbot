@@ -30,14 +30,16 @@ exports.scheduleItem = (item, func) => {
       job.reschedule(calculatedItem.rules);
       // Update revision.
       job.rev = item._rev;
-      console.log(`Item ${job.name} has changed and has been rescheduled.`);
+      job.itemName = item.name;
+      console.log(`Item ${job.itemName} has changed and has been rescheduled.`);
     }
   } else {
     // The item is not scheduled, we add it.
     const calculatedItem = this.calculateItemRules(item);
     let job = schedule.scheduleJob(calculatedItem._id, calculatedItem.rules, func.bind(null, calculatedItem));
     job.rev = calculatedItem._rev;
-    console.log(`Item ${job.name} scheduled.`);
+    job.itemName = calculatedItem.name;
+    console.log(`Item ${job.itemName} scheduled.`);
   }
 }
 
@@ -62,7 +64,7 @@ exports.scheduleAllItems = (func) => {
 exports.scheduledJobInvocations = () => {
   return Object.keys(schedule.scheduledJobs).map(k => {
     return {
-      name: k,
+      name: schedule.scheduledJobs[k].itemName,
       invocation: moment(schedule.scheduledJobs[k].nextInvocation().getTime()).fromNow()
     };
   });

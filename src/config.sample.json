@@ -5,5 +5,6 @@
         "name": "waitron",
         "username": "your_db_username_here",
         "password": "your_db_password_here"
-    }
+    },
+    "lang": "ca"
 }

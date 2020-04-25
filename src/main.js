@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 "use strict";
 
-const Slouch = require('couch-slouch');
-const schedule = require('node-schedule');
 const Telegraf = require('telegraf');
-const extra = require('telegraf/extra');
-const markup = extra.markdown();
+const Extra = require('telegraf/extra');
+const markup = Extra.markdown();
+
 const config = require('./config');
+const db = require('./db');
+const scheduler = require("./scheduler");
 
 // Create the bot using the token
 const bot = new Telegraf(config.token);
@@ -15,24 +16,19 @@ bot.telegram.getMe().then((botInfo) => {
   bot.options.username = botInfo.username
 })
 
-const slouch = new Slouch(`http://${config.db.username}:${config.db.password}@${config.db.host}`);
-
-const getReplies = () => {
-  return slouch.doc.find(config.db.name, {
-    "selector": {
-      "name": "replies"
-    }
-  });
+const executeScheduledItem = (item) => {
+  if (item.itemType === "message") {
+    item.recipients.forEach((recipient) => {
+      bot.telegram.sendMessage(recipient.id, item.message);
+    });
+  }
 };
 
-/*
-schedule.scheduleJob('0 * * * *', () => {
-  bot.telegram.sendMessage('422853836', 'Woot!');
-});
-*/
+// Reschedule every 5 min
+scheduler.start(executeScheduledItem, 300000);
 
 // This method will send the reply, based on the answer type
-// (text / gif / sticker). See replies.js for objects structure.
+// (text / gif / sticker). See database for objects structure.
 const sendReply = (ctx, reply, value, type) => {
   // reply method will be the Telegraf method for sending the reply
   let replyMethod = {
@@ -40,7 +36,7 @@ const sendReply = (ctx, reply, value, type) => {
     gif: ctx.replyWithAnimation,
     sticker: ctx.replyWithSticker
   }[type];
-  
+
   console.log(ctx.message);
   replyMethod(value, {
     // this will make the bot reply to the original message instead of just sending it
@@ -52,7 +48,7 @@ const sendReply = (ctx, reply, value, type) => {
 
 // /list command - will send all the triggers defined in replies.js.
 bot.command('list', ctx => {
-  getReplies().then((r) => {
+  db.getReplies().then((r) => {
     const list = r.docs[0].content;
     ctx.reply(
       'Coses que entenc:\n\n' +
@@ -61,8 +57,11 @@ bot.command('list', ctx => {
   });
 });
 
-bot.command('matar', ctx => {
-    console.log(ctx.message); ctx.reply( 'Hasta la vista, baby.' );
+bot.command('scheduled', ctx => {
+  ctx.reply(
+    'Scheduled tasks:\n\n' +
+    scheduler.scheduledJobInvocations().map(i => i.name + ': ' + i.invocation).join('\n'), markup
+  )
 });
 
 // Listen on every text message, if message.text is one of the trigger,
@@ -71,17 +70,17 @@ bot.on('text', ctx => {
   let cmd = ctx.message.text.toLowerCase();
   console.log(cmd);
   console.log(ctx.from);
-  
+
   let fromUser = ctx.from.username;
   let isMention = ctx.message.entities && ctx.message.entities.find(x => x.type === 'mention')
     && cmd.includes('@waitronbot');
 
   console.log('isMention to me: ' + !!isMention);
 
-  getReplies().then((r) => {
+  db.getReplies().then((r) => {
     const replies = r.docs[0].content;
     let reply = replies.find(x => cmd.match(new RegExp(x.cmd, 'ig')));
-  
+
     if (reply) {
       let value, type;
       if (Array.isArray(reply.value)) {
@@ -119,4 +118,4 @@ bot.on('sticker', ctx => {
   }
 });
 
-bot.startPolling();
+bot.launch();

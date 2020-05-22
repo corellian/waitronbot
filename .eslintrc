@@ -1,6 +1,11 @@
 {
-    "plugins": ["node"],
-    "extends": ["eslint:recommended", "plugin:node/recommended"],
+    "plugins": ["node", "jest"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:node/recommended",
+        "plugin:jest/recommended",
+        "plugin:jest/style"
+    ],
     "rules": {
         "node/exports-style": ["error", "module.exports"],
         "node/shebang": 0

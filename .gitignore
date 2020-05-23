@@ -62,3 +62,6 @@ typings/
 
 # config
 src/config.json
+
+# transpiled files
+dist

@@ -1,21 +1,30 @@
+import { Random as RandomJS, nodeCrypto } from 'random-js';
 
-/**
- * Returns a random integer between min (inclusive) and max (inclusive).
- */
-exports.getRandomInt = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
+const engine = new RandomJS(nodeCrypto);
 
-/**
- * If value is a random range, returns a random number inside the range.
- */
-exports.numFromRange = (value) => {
-  if (value.indexOf(":") > -1) {
-    const values = value.split(':');
-    return this.getRandomInt(values[0], values[1]);
-  } else {
-    return value;
+export class Random {
+  
+  /**
+   * Returns a random integer between min (inclusive) and max (inclusive).
+   */
+  static numBetween(min, max) {
+    if (min === max) return min;
+    if (min > max) {
+      [min, max] = [max, min];
+    }
+
+    return engine.integer(min, max);
   }
-};
+
+  /**
+   * If value is a random range, returns a random number inside the range.
+   */
+  static numFromRange(value) {
+    if (value.indexOf(":") > -1) {
+      const values = value.split(":");
+      return Random.numBetween(+values[0], +values[1]);
+    } else {
+      return +value;
+    }
+  }
+}

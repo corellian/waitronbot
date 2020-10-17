@@ -1,21 +1,21 @@
-const Slouch = require('couch-slouch');
+import Slouch from "couch-slouch";
 
-const config = require('./config');
+import { db } from "./config";
 
-const slouch = new Slouch(`http://${config.db.username}:${config.db.password}@${config.db.host}`);
+const slouch = new Slouch(`http://${db.username}:${db.password}@${db.host}`);
 
-exports.getReplies = () => {
-    return slouch.doc.find(config.db.name, {
-        "selector": {
-            "name": "replies"
-        }
-    });
+export const getReplies = () => {
+  return slouch.doc.find(db.name, {
+    selector: {
+      name: "replies",
+    },
+  });
 };
 
-exports.getScheduledItems = () => {
-    return slouch.doc.find(config.db.name, {
-        "selector": {
-            "docType": "SCHEDULED_ITEM"
-        }
-    });
+export const getScheduledItems = () => {
+  return slouch.doc.find(db.name, {
+    selector: {
+      docType: "SCHEDULED_ITEM",
+    },
+  });
 };

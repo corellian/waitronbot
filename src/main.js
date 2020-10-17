@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 "use strict";
 
-const Telegraf = require('telegraf');
-const Extra = require('telegraf/extra');
-const markup = Extra.markdown();
+import Telegraf from 'telegraf';
+import { markdown } from 'telegraf/extra';
+const markup = markdown();
 
-const config = require('./config');
-const db = require('./db');
-const scheduler = require("./scheduler");
+import { token } from './config';
+import { getReplies } from './db';
+import { start, scheduledJobInvocations } from "./scheduler";
+
+import { Random } from './utils/random';
 
 // Create the bot using the token
-const bot = new Telegraf(config.token);
+const bot = new Telegraf(token);
 
 bot.telegram.getMe().then((botInfo) => {
   bot.options.username = botInfo.username
@@ -25,7 +27,7 @@ const executeScheduledItem = (item) => {
 };
 
 // Reschedule every 5 min
-scheduler.start(executeScheduledItem, 300000);
+start(executeScheduledItem, 300000);
 
 // This method will send the reply, based on the answer type
 // (text / gif / sticker). See database for objects structure.
@@ -48,7 +50,7 @@ const sendReply = (ctx, reply, value, type) => {
 
 // /list command - will send all the triggers defined in replies.js.
 bot.command('list', ctx => {
-  db.getReplies().then((r) => {
+  getReplies().then((r) => {
     const list = r.docs[0].content;
     ctx.reply(
       'Coses que entenc:\n\n' +
@@ -60,7 +62,7 @@ bot.command('list', ctx => {
 bot.command('scheduled', ctx => {
   ctx.reply(
     'Scheduled tasks:\n\n' +
-    scheduler.scheduledJobInvocations().map(i => i.name + ': ' + i.invocation).join('\n'), markup
+    scheduledJobInvocations().map(i => `- ${i.name}: ${i.invocationFromNow} (${i.invocationDate})`).join('\n'), markup
   )
 });
 
@@ -77,7 +79,7 @@ bot.on('text', ctx => {
 
   console.log('isMention to me: ' + !!isMention);
 
-  db.getReplies().then((r) => {
+  getReplies().then((r) => {
     const replies = r.docs[0].content;
     let reply = replies.find(x => cmd.match(new RegExp(x.cmd, 'ig')));
 
@@ -93,7 +95,7 @@ bot.on('text', ctx => {
         value = reply.value;
       }
       if (Array.isArray(value)) { // array of values, we want to pick one randomly
-        value = value[Math.floor(Math.random() * value.length)];
+        value = value[Random.numBetween(0, value.length - 1)];
       }
       sendReply(ctx, reply, value, type);
     }
